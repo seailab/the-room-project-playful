@@ -1,0 +1,43 @@
+name: Publish The Room Project Playful
+on:
+  push:
+    branches: [main]
+    paths:
+      - the-room-project-playful.zip
+      - .github/workflows/deploy-pages.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out approved website
+        uses: actions/checkout@v6
+      - name: Verify and unpack the approved website
+        run: |
+          echo '816de867332403488dc84153fe4bb8efed478225bf7820671c110ebbad80470e  the-room-project-playful.zip' | sha256sum --check
+          mkdir -p _site
+          unzip -q the-room-project-playful.zip -d _site
+          test -f _site/index.html
+          test -f _site/assets/hero-play-v5.js
+          test -f _site/assets/playbook-v6.css
+          test -f _site/assets/playbook-v6.js
+          test -f _site/assets/films/explorer-concept.mp4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Publish website
+        id: deployment
+        uses: actions/deploy-pages@v4
